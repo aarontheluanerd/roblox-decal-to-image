@@ -1,37 +1,44 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html>
 <head>
-    <title>Decal Proxy</title>
     <script>
         async function handleRequest(request) {
-            const url = new URL(request.url);
-            const assetId = url.searchParams.get('id');
+            const params = new URL(request.url).searchParams;
+            const assetId = params.get('id');
             
             if (!assetId) {
-                return new Response('Error: Add ?id=ASSET_ID', { status: 400 });
+                return new Response('Missing asset ID', { status: 400 });
             }
 
-            // Forward to Cloudflare Worker
-            const workerUrl = `https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev?id=${assetId}`;
             try {
+                // Forward to Cloudflare worker
+                const workerUrl = `https://your-worker-name.your-subdomain.workers.dev/?id=${assetId}`;
                 const response = await fetch(workerUrl);
-                const data = await response.text();
-                return new Response(data, {
-                    headers: { 'Content-Type': 'text/plain' }
+                
+                // Return the response with CORS headers
+                const headers = new Headers(response.headers);
+                headers.set('Access-Control-Allow-Origin', '*');
+                
+                return new Response(response.body, {
+                    status: response.status,
+                    headers: headers
                 });
             } catch (error) {
-                return new Response(`Proxy Error: ${error.message}`, { status: 500 });
+                return new Response(`Proxy error: ${error.message}`, { status: 500 });
             }
         }
 
-        // Handle GET requests
-        addEventListener('fetch', event => {
-            event.respondWith(handleRequest(event.request));
+        self.addEventListener('fetch', event => {
+            if (event.request.method === 'GET') {
+                event.respondWith(handleRequest(event.request));
+            }
         });
     </script>
 </head>
 <body>
     <h1>Roblox Decal Proxy</h1>
     <p>This page acts as a proxy between Roblox and Cloudflare Workers.</p>
+    <p>If you're trying to use this site to convert decal IDs to image IDs, here's a guide on how to do so: (in readme.md)</p>
+    <p>https://github.com/aarontheluanerd/roblox-decal-to-image</p>
 </body>
 </html>
