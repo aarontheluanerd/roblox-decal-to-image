@@ -1,27 +1,25 @@
 <script>
-    // Minimal HTML document that immediately returns JSON
-    const params = new URLSearchParams(window.location.search);
+    // This script self-destructs after sending JSON
+    const params = new URLSearchParams(location.search);
     const assetId = params.get('id');
     
     if (assetId) {
       fetch(`https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev/?id=${assetId}`)
-        .then(response => response.json())
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
         .then(data => {
-          document.write(JSON.stringify(data));
+          const json = JSON.stringify(data);
+          document.write(`<pre>${json}</pre>`);
           document.close();
+          // Self-destruct the script
+          document.currentScript.remove();
+          document.body.firstChild.remove();
         })
-        .catch(error => {
-          document.write(JSON.stringify({
-            error: "Proxy failed",
-            details: error.message
-          }));
+        .catch(err => {
+          document.write(`{"error":"Proxy failed","details":"${err}"}`);
           document.close();
         });
     } else {
-      document.write(JSON.stringify({
-        error: "Missing asset ID",
-        details: "Add ?id=ASSET_ID to the URL"
-      }));
+      document.write('{"error":"Missing asset ID"}');
       document.close();
     }
     </script>
