@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roblox Decal Proxy</title>
+    <script>
+        async function handleRequest() {
+            const url = new URL(window.location.href);
+            const assetId = url.searchParams.get('id');
+            
+            if (!assetId) {
+                return { error: "Missing asset ID" };
+            }
+
+            try {
+                const workerUrl = `https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev/?id=${assetId}`;
+                const response = await fetch(workerUrl);
+                const data = await response.json();
+                
+                // Return as plain text that Luau can parse
+                document.write(JSON.stringify(data));
+            } catch (error) {
+                document.write(JSON.stringify({
+                    error: "Proxy failed",
+                    details: error.message
+                }));
+            }
+        }
+        
+        // Handle page load
+        window.onload = handleRequest;
+    </script>
+</head>
+<body>
+    <!-- Fallback content -->
+    <noscript>JavaScript must be enabled for this proxy to work.</noscript>
+</body>
+</html>
