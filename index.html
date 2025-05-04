@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decal Proxy</title>
+    <script>
+        async function handleRequest(request) {
+            const url = new URL(request.url);
+            const assetId = url.searchParams.get('id');
+            
+            if (!assetId) {
+                return new Response('Error: Add ?id=ASSET_ID', { status: 400 });
+            }
+
+            // Forward to Cloudflare Worker
+            const workerUrl = `https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev?id=${assetId}`;
+            try {
+                const response = await fetch(workerUrl);
+                const data = await response.text();
+                return new Response(data, {
+                    headers: { 'Content-Type': 'text/plain' }
+                });
+            } catch (error) {
+                return new Response(`Proxy Error: ${error.message}`, { status: 500 });
+            }
+        }
+
+        // Handle GET requests
+        addEventListener('fetch', event => {
+            event.respondWith(handleRequest(event.request));
+        });
+    </script>
+</head>
+<body>
+    <h1>Roblox Decal Proxy</h1>
+    <p>This page acts as a proxy between Roblox and Cloudflare Workers.</p>
+</body>
+</html>
