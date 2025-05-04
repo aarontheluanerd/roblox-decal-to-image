@@ -1,25 +1,47 @@
 <script>
-    // This script self-destructs after sending JSON
+    // This version works in both browser and Roblox
     const params = new URLSearchParams(location.search);
     const assetId = params.get('id');
     
+    function outputJSON(data) {
+        // For browser viewing
+        if (typeof document !== 'undefined' && document.contentType === 'text/html') {
+            document.body.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        // For Roblox requests
+        return data;
+    }
+    
     if (assetId) {
-      fetch(`https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev/?id=${assetId}`)
-        .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(data => {
-          const json = JSON.stringify(data);
-          document.write(`<pre>${json}</pre>`);
-          document.close();
-          // Self-destruct the script
-          document.currentScript.remove();
-          document.body.firstChild.remove();
-        })
-        .catch(err => {
-          document.write(`{"error":"Proxy failed","details":"${err}"}`);
-          document.close();
-        });
+        fetch(`https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev/?id=${assetId}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                const result = outputJSON(data);
+                if (typeof document !== 'undefined') {
+                    document.write(JSON.stringify(result));
+                    document.close();
+                }
+            })
+            .catch(error => {
+                const errorData = { 
+                    error: "Proxy failed", 
+                    details: error.message.replace(/"/g, "'") 
+                };
+                const result = outputJSON(errorData);
+                if (typeof document !== 'undefined') {
+                    document.write(JSON.stringify(result));
+                    document.close();
+                }
+            });
     } else {
-      document.write('{"error":"Missing asset ID"}');
-      document.close();
+        const errorData = { error: "Missing asset ID" };
+        const result = outputJSON(errorData);
+        if (typeof document !== 'undefined') {
+            document.write(JSON.stringify(result));
+            document.close();
+        }
     }
     </script>
