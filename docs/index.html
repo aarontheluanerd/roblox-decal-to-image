@@ -1,29 +1,27 @@
 <script>
-    // Immediately redirect to Worker with CORS headers
-    const url = new URL(window.location.href);
-    const assetId = url.searchParams.get('id');
+    // Minimal HTML document that immediately returns JSON
+    const params = new URLSearchParams(window.location.search);
+    const assetId = params.get('id');
+    
     if (assetId) {
       fetch(`https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev/?id=${assetId}`)
         .then(response => response.json())
         .then(data => {
-          const headers = new Headers({
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          });
-          new Response(JSON.stringify(data), { headers })
-            .text()
-            .then(text => document.write(text));
+          document.write(JSON.stringify(data));
+          document.close();
         })
         .catch(error => {
           document.write(JSON.stringify({
             error: "Proxy failed",
             details: error.message
           }));
+          document.close();
         });
     } else {
       document.write(JSON.stringify({
         error: "Missing asset ID",
         details: "Add ?id=ASSET_ID to the URL"
       }));
+      document.close();
     }
     </script>
