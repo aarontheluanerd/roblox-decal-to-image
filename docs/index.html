@@ -1,47 +1,49 @@
 <script>
-    // This version works in both browser and Roblox
     const params = new URLSearchParams(location.search);
     const assetId = params.get('id');
-    
-    function outputJSON(data) {
+
+    function outputXML(data) {
         // For browser viewing
         if (typeof document !== 'undefined' && document.contentType === 'text/html') {
-            document.body.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            // Escape XML for HTML display
+            const escaped = data
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+            document.body.innerHTML = `<pre>${escaped}</pre>`;
         }
-        // For Roblox requests
+        // For Roblox requests (HttpService): return raw XML string
         return data;
     }
-    
+
     if (assetId) {
         fetch(`https://roblox-decal-to-image-convert.aarontheluanerd.workers.dev/?id=${assetId}`)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.json();
+                return response.text();
             })
-            .then(data => {
-                const result = outputJSON(data);
+            .then(xml => {
+                const result = outputXML(xml);
                 if (typeof document !== 'undefined') {
-                    document.write(JSON.stringify(result));
+                    document.write(result);
                     document.close();
                 }
             })
             .catch(error => {
-                const errorData = { 
-                    error: "Proxy failed", 
-                    details: error.message.replace(/"/g, "'") 
-                };
-                const result = outputJSON(errorData);
+                const errorText = `<error>Proxy failed: ${error.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</error>`;
+                const result = outputXML(errorText);
                 if (typeof document !== 'undefined') {
-                    document.write(JSON.stringify(result));
+                    document.write(result);
                     document.close();
                 }
             });
     } else {
-        const errorData = { error: "Missing asset ID" };
-        const result = outputJSON(errorData);
+        const errorText = `<error>Missing asset ID</error>`;
+        const result = outputXML(errorText);
         if (typeof document !== 'undefined') {
-            document.write(JSON.stringify(result));
+            document.write(result);
             document.close();
         }
     }
-    </script>
+</script>
