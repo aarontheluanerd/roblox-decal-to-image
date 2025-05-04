@@ -35,9 +35,9 @@ end
 -- Usage Example
 
 local assetId = 104098993469911
-local assetUrl = convertDecalIdToImageId(assetId) 
+local success, assetUrl = convertDecalIdToImageId(assetId) 
 
-if assetUrl then 
+if success then 
     print("Success! URL:", assetUrl)
 else 
     warn("Failed to get asset URL")
